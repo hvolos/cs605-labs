@@ -39,7 +39,7 @@ Before you install Docker Engine for the first time on a new host machine, you n
 
 1. Update the ``apt`` package index and install packages to allow apt to use a repository over HTTPS:
 
-```shell_session
+```console
 $ sudo apt-get update
 $ sudo apt-get install \
    apt-transport-https \
