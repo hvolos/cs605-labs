@@ -1,0 +1,9 @@
+---
+- name: Transfer and execute a script.
+  hosts: all
+  tasks:
+  - name: Copy and Execute the script 
+    script: mount_generate_index_part.sh
+  - name: assign id
+    debug:
+      msg: "{{ groups['index'].index(inventory_hostname) }}"

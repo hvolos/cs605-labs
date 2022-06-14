@@ -20,7 +20,8 @@ mount() {
   mkdir -p ${index_mount_dir}
   ssh ${INDEX_SERVER} "df -h"
   #ssh ${INDEX_SERVER} "${WEBSEARCH_HOME_DIR}/scripts/mount_generate_index_part.sh ${INDEX_SERVERS_COUNT} ${WEBSEARCH_HOME_DIR}/test_out/ ${INDEX_SERVER}"
-  ssh ${INDEX_SERVER} "bash -s" -- < mount_generate_index_part.sh ${INDEXES_COUNT} ${INDEX_SERVERS_COUNT} ${WEBSEARCH_HOME_DIR}/test_out/ ${INDEX_SERVER}
+  #ssh ${INDEX_SERVER} "bash -s" -- < mount_generate_index_part.sh ${INDEXES_COUNT} ${INDEX_SERVERS_COUNT} ${WEBSEARCH_HOME_DIR}/test_out/ ${INDEX_SERVER}
+  ssh ${INDEX_SERVER} "bash -s" -- < mount_generate_index_part.sh ${INDEXES_COUNT} 2 ${WEBSEARCH_HOME_DIR}/test_out/ ${INDEX_SERVER} node1
   ssh ${INDEX_SERVER} "df -h"
 }
 
@@ -40,7 +41,10 @@ start() {
     rm hadoop.log;
     export JAVA_HOME=${WEBSEARCH_HOME_DIR}/jdk1.7.0_11;
     ${WEBSEARCH_HOME_DIR}/dis_search/bin/nutch search_server 8890 ${index_mount_dir}/1_0 &> /dev/null & exit"
-  sleep 30
+  #sleep 30
+  while ! nc -z localhost 8890; do
+  sleep 0.1 # wait for 1/10 of the second before check again
+  done
   echo "Starting index server ${INDEX_SERVER}...DONE"
 }
 

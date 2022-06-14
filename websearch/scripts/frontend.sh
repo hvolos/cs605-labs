@@ -60,7 +60,8 @@ start() {
     ((i=i+1))
   done
   
-  sleep 20
+  #sleep 20
+  while ! nc -z localhost 8080; do sleep 0.1; done;
 
   i=0
   while [ $i -lt ${FRONTEND_INSTANCES_PER_SERVER} ];
