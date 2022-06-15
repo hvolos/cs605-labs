@@ -41,7 +41,7 @@ if [ $hosts_size -ne $partitions ]; then
 	exit
 fi
 
-inputDir=/mydata/30GBindex
+inputDir=/mydata/4GBindex
 hardLinks=2
 part=0
 indexesPerPart=`echo "${indexes} / $partitions" | bc`

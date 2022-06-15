@@ -3,33 +3,26 @@
   hosts:
     - frontend
   vars:
-    WEBSEARCH_HOME_DIR: "/local/websearch"
-    JAVA_HOME: "{{ WEBSEARCH_HOME_DIR }}/jdk1.7.0_11"
+    websearch_home_dir: "/local/websearch"
+    java_home: "{{ websearch_home_dir }}/jdk1.7.0_11"
+    tomcat_instance_home_dir: "{{ websearch_home_dir }}/tomcat-{{ socket }}"
+    tomcat_http_port: "{{ 8080 + socket }}"
   tasks:
-  - name: Remove logs
+  - name: Remove log file
     file:
-      path: "{{ WEBSEARCH_HOME_DIR }}/tomcat/logs/catalina.out"
+      path: "{{ tomcat_instance_home_dir }}/logs/catalina.out"
       state: absent
-  - name: Configure frontend search servers 
-    copy:
-      content: ""
-      dest: "{{ WEBSEARCH_HOME_DIR }}/tomcat/crawl/search-servers.txt"
-  - name: Configure frontend search servers 
-    lineinfile:
-      path: "{{ WEBSEARCH_HOME_DIR }}/tomcat/crawl/search-servers.txt"
-      line: "{{ item }} 8890"
-    loop: "{{ groups['index'] }}"
-  - name: Start frontend server
-    shell: "{{ WEBSEARCH_HOME_DIR }}/tomcat/bin/startup.sh"
+  - name: Start tomcat
+    shell: "{{ tomcat_instance_home_dir }}/bin/startup.sh"
     environment:
-      JAVA_HOME: "{{ JAVA_HOME }}"
+      JAVA_HOME: "{{ java_home }}"
     async: 10000 
     poll: 0
-  - name: Wait for frontend server to start
-    wait_for: port=8080
+  - name: Wait for tomcat to start
+    wait_for: port={{ tomcat_http_port }}
   - name: Test frontend server
     uri:
-      url: "http://{{ inventory_hostname }}:8080/onlyHits.jsp?query=google"
+      url: "http://{{ ansible_hostname }}:{{ tomcat_http_port }}/onlyHits.jsp?query=google"
       return_content: yes
     register: frontend_status
   - name: Test frontend server - output

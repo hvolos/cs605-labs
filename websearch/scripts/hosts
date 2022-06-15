@@ -1,3 +1,9 @@
+[all:vars]
+websearch_home_dir=/local/websearch
+
 [index]
 node0
-node1
+
+[frontend]
+node0-socket0 ansible_host=node0 socket=0
+node0-socket1 ansible_host=node0 socket=1

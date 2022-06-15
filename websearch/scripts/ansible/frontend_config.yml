@@ -1,0 +1,49 @@
+---
+- name: Configure frontend server
+  hosts:
+    - frontend
+  vars:
+    websearch_home_dir: "/local/websearch"
+    tomcat_instance_home_dir: "{{ websearch_home_dir }}/tomcat-{{ socket }}"
+  tasks:
+  - name: Create frontend home
+    shell: "cp -r {{ websearch_home_dir }}/tomcat {{ tomcat_instance_home_dir }}"
+  - name: Configure HTTP connector - port
+    xml:
+      path: "{{ tomcat_instance_home_dir }}/conf/server.xml"
+      xpath: /Server/Service/Connector[@protocol="HTTP/1.1"]
+      attribute: port
+      value: "{{ 8080 + socket }}"
+  - name: Configure HTTP connector - redirect port
+    xml:
+      path: "{{ tomcat_instance_home_dir }}/conf/server.xml"
+      xpath: /Server/Service/Connector[@protocol="HTTP/1.1"]
+      attribute: redirectPort
+      value: "{{ 8443 + socket }}"
+  - name: Configure AJP connector - port
+    xml:
+      path: "{{ tomcat_instance_home_dir }}/conf/server.xml"
+      xpath: /Server/Service/Connector[@protocol="AJP/1.3"]
+      attribute: port
+      value: "{{ 8009 + socket }}"
+  - name: Configure AJP connector - redirect port
+    xml:
+      path: "{{ tomcat_instance_home_dir }}/conf/server.xml"
+      xpath: /Server/Service/Connector[@protocol="AJP/1.3"]
+      attribute: redirectPort
+      value: "{{ 8443 + socket }}"
+  - name: Configure Server 
+    xml:
+      path: "{{ tomcat_instance_home_dir }}/conf/server.xml"
+      xpath: /Server
+      attribute: port
+      value: "{{ 8005 + 200 + socket }}"
+  - name: Configure search servers - clear
+    copy:
+      content: ""
+      dest: "{{ tomcat_instance_home_dir }}/crawl/search-servers.txt"
+  - name: Configure search servers - set
+    lineinfile:
+      path: "{{ tomcat_instance_home_dir }}/crawl/search-servers.txt"
+      line: "{{ item }} 8890"
+    loop: "{{ groups['index'] }}"
