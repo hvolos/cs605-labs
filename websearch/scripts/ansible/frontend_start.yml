@@ -20,10 +20,3 @@
     poll: 0
   - name: Wait for tomcat to start
     wait_for: port={{ tomcat_http_port }}
-  - name: Test frontend server
-    uri:
-      url: "http://{{ ansible_hostname }}:{{ tomcat_http_port }}/onlyHits.jsp?query=google"
-      return_content: yes
-    register: frontend_status
-  - name: Test frontend server - output
-    debug: msg="{{ frontend_status.content.split('\n') }}"
