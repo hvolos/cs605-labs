@@ -13,7 +13,7 @@
       path: "{{ tomcat_instance_home_dir }}/logs/catalina.out"
       state: absent
   - name: Start tomcat
-    shell: "{{ tomcat_instance_home_dir }}/bin/startup.sh"
+    shell: "numactl --cpunodebind={{ socket }} {{ tomcat_instance_home_dir }}/bin/startup.sh"
     environment:
       JAVA_HOME: "{{ java_home }}"
     async: 10000 
