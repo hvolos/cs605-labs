@@ -1,0 +1,19 @@
+---
+- name: Remove index partitions 
+  hosts: 
+    - index
+  vars:
+    PARTS_SRC_DIR: "/mydata/4GBindex/indexes"
+    PARTITION_BASE_DIR: "/local/websearch/test_out"
+    PARTS_COUNT: 8
+  tasks:
+  - include: partition.yml
+  - name: Unmount partition tmpfs
+    mount:
+      path: "{{ partition_path }}"
+      src: tmpfs
+      fstype: tmpfs
+      opts: "size=8g,mpol=bind:0"
+      state: unmounted
+      fstab: /tmp/tmp.fstab
+    become: yes

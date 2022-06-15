@@ -1,0 +1,36 @@
+---
+- name: Start frontend server
+  hosts:
+    - frontend
+  vars:
+    WEBSEARCH_HOME_DIR: "/local/websearch"
+    JAVA_HOME: "{{ WEBSEARCH_HOME_DIR }}/jdk1.7.0_11"
+  tasks:
+  - name: Remove logs
+    file:
+      path: "{{ WEBSEARCH_HOME_DIR }}/tomcat/logs/catalina.out"
+      state: absent
+  - name: Configure frontend search servers 
+    copy:
+      content: ""
+      dest: "{{ WEBSEARCH_HOME_DIR }}/tomcat/crawl/search-servers.txt"
+  - name: Configure frontend search servers 
+    lineinfile:
+      path: "{{ WEBSEARCH_HOME_DIR }}/tomcat/crawl/search-servers.txt"
+      line: "{{ item }} 8890"
+    loop: "{{ groups['index'] }}"
+  - name: Start frontend server
+    shell: "{{ WEBSEARCH_HOME_DIR }}/tomcat/bin/startup.sh"
+    environment:
+      JAVA_HOME: "{{ JAVA_HOME }}"
+    async: 10000 
+    poll: 0
+  - name: Wait for frontend server to start
+    wait_for: port=8080
+  - name: Test frontend server
+    uri:
+      url: "http://{{ inventory_hostname }}:8080/onlyHits.jsp?query=google"
+      return_content: yes
+    register: frontend_status
+  - name: Test frontend server - output
+    debug: msg="{{ frontend_status.content.split('\n') }}"

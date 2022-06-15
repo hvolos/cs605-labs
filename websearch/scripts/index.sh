@@ -20,8 +20,7 @@ mount() {
   mkdir -p ${index_mount_dir}
   ssh ${INDEX_SERVER} "df -h"
   #ssh ${INDEX_SERVER} "${WEBSEARCH_HOME_DIR}/scripts/mount_generate_index_part.sh ${INDEX_SERVERS_COUNT} ${WEBSEARCH_HOME_DIR}/test_out/ ${INDEX_SERVER}"
-  #ssh ${INDEX_SERVER} "bash -s" -- < mount_generate_index_part.sh ${INDEXES_COUNT} ${INDEX_SERVERS_COUNT} ${WEBSEARCH_HOME_DIR}/test_out/ ${INDEX_SERVER}
-  ssh ${INDEX_SERVER} "bash -s" -- < mount_generate_index_part.sh ${INDEXES_COUNT} 2 ${WEBSEARCH_HOME_DIR}/test_out/ ${INDEX_SERVER} node1
+  ssh ${INDEX_SERVER} "bash -s" -- < mount_generate_index_part.sh ${INDEXES_COUNT} ${INDEX_SERVERS_COUNT} ${WEBSEARCH_HOME_DIR}/test_out/ ${INDEX_SERVER}
   ssh ${INDEX_SERVER} "df -h"
 }
 

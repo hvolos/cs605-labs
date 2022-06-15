@@ -1,0 +1,31 @@
+---
+- name: Deploy index partitions 
+  hosts: 
+    - index
+  vars:
+    PARTS_SRC_DIR: "/mydata/4GBindex/indexes"
+    PARTITION_BASE_DIR: "/local/websearch/test_out"
+    PARTS_COUNT: 8
+  tasks:
+  - include: partition.yml
+  - name: Get partition index parts 
+    script: partition_index.sh {{ PARTS_COUNT }} {{ partition_count }} {{ partition_id }} {{ PARTS_SRC_DIR }}
+    register: partition_parts
+  - name: Ensure partition tmpfs mountpoint exists
+    file:
+      path: "{{ partition_path }}"
+      state: directory
+  - name: Mount partition tmpfs
+    mount:
+      path: "{{ partition_path }}"
+      src: tmpfs
+      fstype: tmpfs
+      opts: "size=8g,mpol=bind:0"
+      state: mounted
+      fstab: /tmp/tmp.fstab
+    become: yes
+  - name: "Copy partition index parts to partition tmpfs"
+    shell: "mkdir -p {{ partition_path }}/indexes/{{ item }}; cp -r {{ PARTS_SRC_DIR }}/{{ item }}/* {{ partition_path }}/indexes/{{ item }}"
+    loop: "{{ partition_parts.stdout_lines }}"
+    args:
+      warn: false
