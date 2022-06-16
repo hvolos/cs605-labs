@@ -3,7 +3,8 @@
   hosts:
     - frontend
   vars:
-    tomcat_home: "{{ websearch_home }}/tomcat-{{ socket }}"
+    instance_number: "{{ socket | default(0) }}"
+    tomcat_home: "{{ websearch_home }}/tomcat-{{ instance_number }}"
   tasks:
   - name: Copy tomcat installation
     shell: "cp -r {{ websearch_home }}/tomcat {{ tomcat_home }}"
@@ -12,31 +13,31 @@
       path: "{{ tomcat_home }}/conf/server.xml"
       xpath: /Server/Service/Connector[@protocol="HTTP/1.1"]
       attribute: port
-      value: "{{ 8080 + socket }}"
+      value: "{{ 8080 + instance_number | int }}"
   - name: Configure HTTP connector - redirect port
     xml:
       path: "{{ tomcat_home }}/conf/server.xml"
       xpath: /Server/Service/Connector[@protocol="HTTP/1.1"]
       attribute: redirectPort
-      value: "{{ 8443 + socket }}"
+      value: "{{ 8443 + instance_number | int }}"
   - name: Configure AJP connector - port
     xml:
       path: "{{ tomcat_home }}/conf/server.xml"
       xpath: /Server/Service/Connector[@protocol="AJP/1.3"]
       attribute: port
-      value: "{{ 8009 + socket }}"
+      value: "{{ 8009 + instance_number | int }}"
   - name: Configure AJP connector - redirect port
     xml:
       path: "{{ tomcat_home }}/conf/server.xml"
       xpath: /Server/Service/Connector[@protocol="AJP/1.3"]
       attribute: redirectPort
-      value: "{{ 8443 + socket }}"
+      value: "{{ 8443 + instance_number | int }}"
   - name: Configure server 
     xml:
       path: "{{ tomcat_home }}/conf/server.xml"
       xpath: /Server
       attribute: port
-      value: "{{ 8005 + 200 + socket }}"
+      value: "{{ 8005 + 200 + instance_number | int }}"
   - name: Configure search servers directory
     xml:
       path: "{{ tomcat_home }}/webapps/ROOT/WEB-INF/classes/nutch-site.xml"
@@ -49,5 +50,5 @@
   - name: Configure search servers - add entries
     lineinfile:
       path: "{{ tomcat_home }}/crawl/search-servers.txt"
-      line: "{{ item }} 8890"
-    loop: "{{ groups['index'] }}"
+      line: "{{ item }}"
+    loop: "{{ index_servers }}"

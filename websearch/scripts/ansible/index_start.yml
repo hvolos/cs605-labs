@@ -3,7 +3,10 @@
   hosts:
     - index
   vars:
+    instance_number: "{{ socket | default(0) }}"
+    cpu_node: "{{ socket | default(0) }}"
     java_home: "{{ websearch_home }}/jdk1.7.0_11"
+    server_port: "{{ 8890 + instance_number | int }}"
   tasks:
   - include: partition.yml
   - name: Remove logs
@@ -16,10 +19,10 @@
       xpath: /configuration/property[name="searcher.num.handlers"]/value
       value: "{{ index_server_threads_count | int }}"
   - name: Start index server
-    shell: "{{ websearch_home }}/dis_search/bin/nutch search_server 8890 {{ partition_dir }}"
+    shell: "numactl --cpunodebind={{ cpu_node }} {{ websearch_home }}/dis_search/bin/nutch search_server {{ server_port | int }} {{ partition_dir }}"
     environment:
       JAVA_HOME: "{{ java_home }}"
     async: 10000 
     poll: 0
   - name: Wait for index server to start
-    wait_for: port=8890  
+    wait_for: port={{ server_port | int }}  

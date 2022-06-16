@@ -1,7 +1,10 @@
 ---
-- name: Deploy index partitions 
+- name: Mount index partitions 
   hosts: 
     - index
+  vars:
+    instance_number: "{{ socket | default(0) }}"
+    cpu_node: "{{ socket | default(0) }}"
   tasks:
   - include: partition.yml
   - name: Get partition index parts 
@@ -16,7 +19,7 @@
       path: "{{ partition_dir }}"
       src: tmpfs
       fstype: tmpfs
-      opts: "size=8g,mpol=bind:0"
+      opts: "size=8g,mpol=bind:{{ cpu_node }}"
       state: mounted
       fstab: /tmp/tmp.fstab
     become: yes

@@ -6,16 +6,23 @@ SCRIPT_HOME="$(cd "$(dirname "$0")"; pwd)"
 
 source common.sh
 
-config() {
-  ansible-playbook ${VERBOSE} -i ${INVENTORY_FILE} ${SCRIPT_HOME}/ansible/index_umount_partition.yml
+function mount() {
   ansible-playbook ${VERBOSE} -i ${INVENTORY_FILE} ${SCRIPT_HOME}/ansible/index_mount_partition.yml
 }
 
-start() {
+function umount() {
+  ansible-playbook ${VERBOSE} -i ${INVENTORY_FILE} ${SCRIPT_HOME}/ansible/index_umount_partition.yml
+}
+
+function hosts() {
+  list_hosts ${INVENTORY_FILE} index 8890 ':'
+}
+
+function start() {
   ansible-playbook ${VERBOSE} -i ${INVENTORY_FILE} ${SCRIPT_HOME}/ansible/index_start.yml
 }
 
-stop() {
+function stop() {
   ansible-playbook ${VERBOSE} -i ${INVENTORY_FILE} ${SCRIPT_HOME}/ansible/index_stop.yml
 }
 
@@ -30,9 +37,11 @@ function usage() {
   echo -e "                        specify inventory host path "
   echo -e "  -v, --verbose         verbose mode"
   echo -e "Commands:"
-  echo -e "  config    Configure index servers"
+  echo -e "  hosts     List index servers host names"
   echo -e "  start     Start index servers"
   echo -e "  stop      Stop index servers"
+  echo -e "  mount     Mount index partitions"
+  echo -e "  umount    Unmount index partitions"
   exit 1
 }
 

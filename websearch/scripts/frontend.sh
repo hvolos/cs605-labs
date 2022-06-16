@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#VERBOSE=-v
-
 INVENTORY_FILE=hosts
 
 SCRIPT_HOME="$(cd "$(dirname "$0")"; pwd)"
@@ -9,7 +7,12 @@ SCRIPT_HOME="$(cd "$(dirname "$0")"; pwd)"
 source common.sh
 
 function config() {
-  ansible-playbook ${VERBOSE} -i ${INVENTORY_FILE} ${SCRIPT_HOME}/ansible/frontend_config.yml
+  index_servers=$(list_hosts ${INVENTORY_FILE} index 8890 ' ' | awk '{ printf "%c%s%c\n", 0x27, $0, 0x27 }' | paste -sd "," -)
+  ansible-playbook ${VERBOSE} -i ${INVENTORY_FILE} -e "{'index_servers':\"[${index_servers}]\"}" ${SCRIPT_HOME}/ansible/frontend_config.yml
+}
+
+function hosts() {
+  list_hosts ${INVENTORY_FILE} frontend 8080 ':'
 }
 
 function start() {
@@ -21,8 +24,7 @@ function stop() {
 }
 
 function test() {
-  list_hosts ${INVENTORY_FILE} frontend
-  for frontend in $(list_hosts ${INVENTORY_FILE} frontend); do
+  for frontend in $(list_hosts ${INVENTORY_FILE} frontend 8080 ':'); do
     echo "Test frontend server instance ${frontend}..."
     curl "${frontend}/onlyHits.jsp?query=google"
   done  
@@ -40,6 +42,7 @@ function usage() {
   echo -e "  -v, --verbose         verbose mode"
   echo -e "Commands:"
   echo -e "  config    Configure frontend servers"
+  echo -e "  hosts     List frontend servers host names"
   echo -e "  start     Start frontend servers"
   echo -e "  stop      Stop frontend servers"
   echo -e "  test      Test frontend servers"
