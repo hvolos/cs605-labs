@@ -2,4 +2,4 @@
   set_fact: 
     partition_id: "{{ groups['index'].index(inventory_hostname) }}"
     partition_count: "{{ groups['index'] | length }}"
-    partition_path: "{{ PARTITION_BASE_DIR }}/{{ groups['index'] | length }}_{{ groups['index'].index(inventory_hostname) }}"
+    partition_dir: "{{ index_partition_base_dir }}/{{ groups['index'] | length }}_{{ groups['index'].index(inventory_hostname) }}"

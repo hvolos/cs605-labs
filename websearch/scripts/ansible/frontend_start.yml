@@ -3,17 +3,16 @@
   hosts:
     - frontend
   vars:
-    websearch_home_dir: "/local/websearch"
-    java_home: "{{ websearch_home_dir }}/jdk1.7.0_11"
-    tomcat_instance_home_dir: "{{ websearch_home_dir }}/tomcat-{{ socket }}"
+    java_home: "{{ websearch_home }}/jdk1.7.0_11"
+    tomcat_home: "{{ websearch_home }}/tomcat-{{ socket }}"
     tomcat_http_port: "{{ 8080 + socket }}"
   tasks:
   - name: Remove log file
     file:
-      path: "{{ tomcat_instance_home_dir }}/logs/catalina.out"
+      path: "{{ tomcat_home }}/logs/catalina.out"
       state: absent
   - name: Start tomcat
-    shell: "numactl --cpunodebind={{ socket }} {{ tomcat_instance_home_dir }}/bin/startup.sh"
+    shell: "numactl --cpunodebind={{ socket }} {{ tomcat_home }}/bin/startup.sh"
     environment:
       JAVA_HOME: "{{ java_home }}"
     async: 10000 

@@ -1,56 +1,63 @@
 #!/bin/bash
 
-source common.config
+INVENTORY_FILE=hosts
 
-INDEX_SERVERS_COUNT=`wc -w <<< ${INDEX_SERVER}`
+SCRIPT_HOME="$(cd "$(dirname "$0")"; pwd)"
+
+source common.sh
 
 config() {
-  :
-}
-
-umount() {
-  # umount previous index
-  local index_mount_dir=$1
-  ssh $INDEX_SERVER "sudo umount ${index_mount_dir}/1_0"
-}
-
-mount() {
-  # mount index
-  local index_mount_dir=$1
-  mkdir -p ${index_mount_dir}
-  ssh ${INDEX_SERVER} "df -h"
-  #ssh ${INDEX_SERVER} "${WEBSEARCH_HOME_DIR}/scripts/mount_generate_index_part.sh ${INDEX_SERVERS_COUNT} ${WEBSEARCH_HOME_DIR}/test_out/ ${INDEX_SERVER}"
-  ssh ${INDEX_SERVER} "bash -s" -- < mount_generate_index_part.sh ${INDEXES_COUNT} ${INDEX_SERVERS_COUNT} ${WEBSEARCH_HOME_DIR}/test_out/ ${INDEX_SERVER}
-  ssh ${INDEX_SERVER} "df -h"
+  ansible-playbook ${VERBOSE} -i ${INVENTORY_FILE} ${SCRIPT_HOME}/ansible/index_umount_partition.yml
+  ansible-playbook ${VERBOSE} -i ${INVENTORY_FILE} ${SCRIPT_HOME}/ansible/index_mount_partition.yml
 }
 
 start() {
-  local index_mount_dir=$WEBSEARCH_HOME_DIR/test_out
-  
-  umount ${index_mount_dir}
-  mount ${index_mount_dir}
-
-  # defines how many threads per index process usually same as the number of clients for close loop experiments
-  local handlers=${INDEX_THREADS}
-  ssh ${INDEX_SERVER} "sed -i '905s/<value>.*<\/value>/<value>'\"${handlers}\"'<\/value>/' ${WEBSEARCH_HOME_DIR}\"/dis_search/conf/nutch-default.xml\"; exit"
-
-  echo "Starting index server ${INDEX_SERVER}..."
-  ssh ${INDEX_SERVER} "
-    cd ${WEBSEARCH_HOME_DIR}/dis_search/logs;
-    rm hadoop.log;
-    export JAVA_HOME=${WEBSEARCH_HOME_DIR}/jdk1.7.0_11;
-    ${WEBSEARCH_HOME_DIR}/dis_search/bin/nutch search_server 8890 ${index_mount_dir}/1_0 &> /dev/null & exit"
-  #sleep 30
-  while ! nc -z localhost 8890; do
-  sleep 0.1 # wait for 1/10 of the second before check again
-  done
-  echo "Starting index server ${INDEX_SERVER}...DONE"
+  ansible-playbook ${VERBOSE} -i ${INVENTORY_FILE} ${SCRIPT_HOME}/ansible/index_start.yml
 }
 
 stop() {
-  local username=$(whoami)
-  echo "Stopping index server ${INDEX_SERVER}"
-  ssh ${INDEX_SERVER} "pkill -f dis_search"
+  ansible-playbook ${VERBOSE} -i ${INVENTORY_FILE} ${SCRIPT_HOME}/ansible/index_stop.yml
 }
 
-$@
+function usage() {
+  local progname=$1
+  echo -e "usage: ${progname} [OPTIONS] COMMAND"
+  echo -e ""
+  echo -e "Manage index servers"
+  echo -e ""
+  echo -e "Options:"
+  echo -e "  -i INVENTORY, --inventory=INVENTORY"
+  echo -e "                        specify inventory host path "
+  echo -e "  -v, --verbose         verbose mode"
+  echo -e "Commands:"
+  echo -e "  config    Configure index servers"
+  echo -e "  start     Start index servers"
+  echo -e "  stop      Stop index servers"
+  exit 1
+}
+
+POSITIONAL_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -i|--inventory)
+      INVENTORY_FILE="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -v|--verbose)
+      VERBOSE=-v
+      shift # past argument
+      ;;
+    -*|--*)
+      echo "Unknown option $1"
+      usage 
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1") # save positional arg
+      shift # past argument
+      ;;
+  esac
+done
+
+$POSITIONAL_ARGS

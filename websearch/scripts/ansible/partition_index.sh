@@ -40,9 +40,11 @@ function usage() {
   local progname=$1
   echo -e "usage: ${progname} <parts_count> <partitions_count> <partition_id> <src_base_dir>"
   echo -e ""
+  echo -e "Produce a list of index parts that correspond to a partition"
+  echo -e ""
   echo -e "  <parts_count>\t\ttotal number of index parts to distribute equally among partitions"
   echo -e "  <partitions_count>\ttotal number of partitions"
-  echo -e "  <partition_id>\tidentifier of the partition to create"
+  echo -e "  <partition_id>\tidentifier of the partition to produce list for"
   echo -e "  <src_base_dir>\tsource directory containing all the index parts"
   exit 1
 }

@@ -3,27 +3,22 @@
   hosts:
     - index
   vars:
-    PARTS_SRC_DIR: "/mydata/4GBindex/indexes"
-    PARTITION_BASE_DIR: "/local/websearch/test_out"
-    PARTS_COUNT: 8
-    WEBSEARCH_HOME_DIR: "/local/websearch"
-    INDEX_SERVER_THREADS_COUNT: 16
-    JAVA_HOME: "{{ WEBSEARCH_HOME_DIR }}/jdk1.7.0_11"
+    java_home: "{{ websearch_home }}/jdk1.7.0_11"
   tasks:
   - include: partition.yml
   - name: Remove logs
     file:
-      path: "{{ WEBSEARCH_HOME_DIR }}/dis_search/logs/hadoop.log"
+      path: "{{ websearch_home }}/dis_search/logs/hadoop.log"
       state: absent
   - name: Configure number of threads
     xml:
-      path: "{{ WEBSEARCH_HOME_DIR }}/dis_search/conf/nutch-default.xml"
+      path: "{{ websearch_home }}/dis_search/conf/nutch-default.xml"
       xpath: /configuration/property[name="searcher.num.handlers"]/value
-      value: "{{ INDEX_SERVER_THREADS_COUNT | int }}"
+      value: "{{ index_server_threads_count | int }}"
   - name: Start index server
-    shell: "{{ WEBSEARCH_HOME_DIR }}/dis_search/bin/nutch search_server 8890 {{ partition_path }}"
+    shell: "{{ websearch_home }}/dis_search/bin/nutch search_server 8890 {{ partition_dir }}"
     environment:
-      JAVA_HOME: "{{ JAVA_HOME }}"
+      JAVA_HOME: "{{ java_home }}"
     async: 10000 
     poll: 0
   - name: Wait for index server to start
